@@ -24,6 +24,26 @@ public class FileSharer {
         }
     }
 
+    public void startFileServer(int port){
+        String filePath = availableFiles.get(port);
 
-    
+        if(filePath == null) {
+            System.out.println("No file available for port: " + port);
+            return;
+        }
+
+        try(ServerSocket serverSocket = new ServerSocket()){
+                        System.out.println("Serving file '" + new File(filePath).getName() + "' on port " + port);
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+            new Thread(new FileSenderHandler(clientSocket, filePath)).start();
+            
+        }catch(){
+            IOException e) {
+            System.err.println("Error starting file server on port " + port + ": " + e.getMessage());
+        }
+    }
+
+
 }
