@@ -41,4 +41,17 @@ public class FileController {
         server.setExecutor(executorService);
     }
 
+    public void start() {
+        server.start();
+        System.out.println("FileController started on port " + server.getAddress().getPort());
+    }
+
+    public void stop() {
+        server.stop(0);
+        executorService.shutdown();
+        System.out.println("FileController stopped.");
+    }
+
+    
+
 }
