@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 
 public class FileController {
     private final FileSharer fileSharer;
-    private final HttpServer httpServer;
+    private final HttpServer server;
     private final String uploadDir;
     private final ExecutorService executorService;
 
@@ -52,6 +52,25 @@ public class FileController {
         System.out.println("FileController stopped.");
     }
 
-    
+        private class CORSHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+            headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization");
+            
+            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
+            
+            String response = "Not Found";
+            exchange.sendResponseHeaders(404, response.getBytes().length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
 
 }
