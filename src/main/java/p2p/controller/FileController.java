@@ -137,7 +137,18 @@ public class FileController {
             }
         }
 
-
+        private int findSequence(byte[] data, byte[] sequence, int startPos) {
+            outer:
+            for (int i = startPos; i <= data.length - sequence.length; i++) {
+                for (int j = 0; j < sequence.length; j++) {
+                    if (data[i + j] != sequence[j]) {
+                        continue outer;
+                    }
+                }
+                return i;
+            }
+            return -1;
+        }
 
     private class UploadHandler implements HttpHandler {
         @Override
