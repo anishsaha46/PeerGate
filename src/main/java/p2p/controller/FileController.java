@@ -150,6 +150,19 @@ public class FileController {
             return -1;
         }
 
+                public static class ParseResult {
+            public final String filename;
+            public final String contentType;
+            public final byte[] fileContent;
+            
+            public ParseResult(String filename, String contentType, byte[] fileContent) {
+                this.filename = filename;
+                this.contentType = contentType;
+                this.fileContent = fileContent;
+            }
+        }
+    }
+
     private class UploadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
