@@ -4,7 +4,7 @@ import { useState } from 'react';
 import FileUpload from '@/components/FileUpload';
 import FileDownload from '@/components/FileDownload';
 import InviteCode from '@/components/InviteCode';
-import axios from 'axios';
+import apiClient from '@/lib/api';
 
 export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -21,11 +21,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await axios.post('/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await apiClient.post('/upload', formData);
       
       setPort(response.data.port);
     } catch (error) {
@@ -41,7 +37,7 @@ export default function Home() {
     
     try {
       // Request download from Java backend
-      const response = await axios.get(`/api/download/${port}`, {
+      const response = await apiClient.get(`/download/${port}`, {
         responseType: 'blob',
       });
       
