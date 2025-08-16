@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with the base URL pointing to our backend
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080', // Backend server URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
