@@ -220,11 +220,9 @@ public class FileController {
                     fos.write(result.fileContent);
                 }
                 
-                int port = fileSharer.offerFile(filePath);
-                
-                new Thread(() -> fileSharer.startFileServer(port)).start();
-                
-                String jsonResponse = "{\"port\": " + port + "}";
+                fileSharer.addSharedFile(uniqueFilename, filePath);
+
+                String jsonResponse = "{\"fileId\": \"" + uniqueFilename + "\"}";
                 headers.add("Content-Type", "application/json");
                 exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
                 try (OutputStream os = exchange.getResponseBody()) {
@@ -247,80 +245,46 @@ public class FileController {
         public void handle(HttpExchange exchange) throws IOException {
             Headers headers = exchange.getResponseHeaders();
             headers.add("Access-Control-Allow-Origin", "*");
-            
+            headers.add("Access-Control-Expose-Headers", "Content-Disposition");
+
             if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-                String response = "Method Not Allowed";
-                exchange.sendResponseHeaders(405, response.getBytes().length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(response.getBytes());
-                }
+                sendResponse(exchange, 405, "Method Not Allowed");
                 return;
             }
-            
+
             String path = exchange.getRequestURI().getPath();
-            String portStr = path.substring(path.lastIndexOf('/') + 1);
-            
-            try {
-                int port = Integer.parseInt(portStr);
-                
-                try (Socket socket = new Socket("localhost", port);
-                     InputStream socketInput = socket.getInputStream()) {
-                    
-                    File tempFile = File.createTempFile("download-", ".tmp");
-                    String filename = "downloaded-file"; // Default filename
-                    
-                    try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        
-                        ByteArrayOutputStream headerBaos = new ByteArrayOutputStream();
-                        int b;
-                        while ((b = socketInput.read()) != -1) {
-                            if (b == '\n') break;
-                            headerBaos.write(b);
-                        }
-                        
-                        String header = headerBaos.toString().trim();
-                        if (header.startsWith("Filename: ")) {
-                            filename = header.substring("Filename: ".length());
-                        }
-                        
-                        while ((bytesRead = socketInput.read(buffer)) != -1) {
-                            fos.write(buffer, 0, bytesRead);
-                        }
-                    }
-                    
-                    headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-                    headers.add("Content-Type", "application/octet-stream");
-                    
-                    exchange.sendResponseHeaders(200, tempFile.length());
-                    try (OutputStream os = exchange.getResponseBody();
-                         FileInputStream fis = new FileInputStream(tempFile)) {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = fis.read(buffer)) != -1) {
-                            os.write(buffer, 0, bytesRead);
-                        }
-                    }
-                    
-                    tempFile.delete();
-                    
-                } catch (IOException e) {
-                    System.err.println("Error downloading file from peer: " + e.getMessage());
-                    String response = "Error downloading file: " + e.getMessage();
-                    headers.add("Content-Type", "text/plain");
-                    exchange.sendResponseHeaders(500, response.getBytes().length);
-                    try (OutputStream os = exchange.getResponseBody()) {
-                        os.write(response.getBytes());
-                    }
-                }
-                
-            } catch (NumberFormatException e) {
-                String response = "Bad Request: Invalid port number";
-                exchange.sendResponseHeaders(400, response.getBytes().length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(response.getBytes());
-                }
+            String fileId = path.substring(path.lastIndexOf('/') + 1);
+
+            String filePath = fileSharer.getFilePath(fileId);
+
+            if (filePath == null) {
+                sendResponse(exchange, 404, "File not found");
+                return;
+            }
+
+            File file = new File(filePath);
+            if (!file.exists()) {
+                sendResponse(exchange, 404, "File not found");
+                return;
+            }
+
+            String originalFilename = fileId.substring(fileId.indexOf('_') + 1);
+
+            headers.add("Content-Disposition", "attachment; filename=\"" + originalFilename + "\"");
+            headers.add("Content-Type", "application/octet-stream");
+
+            exchange.sendResponseHeaders(200, file.length());
+            try (OutputStream os = exchange.getResponseBody();
+                 FileInputStream fis = new FileInputStream(file)) {
+                IOUtils.copy(fis, os);
+            }
+        }
+
+        private void sendResponse(HttpExchange exchange, int statusCode, String message) throws IOException {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(statusCode, message.getBytes().length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(message.getBytes());
             }
         }
     }
