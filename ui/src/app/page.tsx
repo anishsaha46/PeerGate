@@ -7,23 +7,31 @@ import InviteCode from '@/components/InviteCode';
 import apiClient from '@/lib/api';
 
 export default function Home() {
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [port, setPort] = useState<number | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'upload' | 'download'>('upload');
 
-  const handleFileUpload = async (file: File) => {
-    setUploadedFile(file);
+      const handleFileSelection = (files: File[]) => {
+    setUploadedFiles(files);
+  };
+
+  const handleUpload = async () => {
+    if (uploadedFiles.length === 0) return;
+
     setIsUploading(true);
     
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      uploadedFiles.forEach(file => {
+        formData.append('files', file);
+      });
       
       const response = await apiClient.post('/upload', formData);
+      console.log('Upload response from server:', response);
       
-      setPort(response.data.port);
+      setFileId(response.data.fileId);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
@@ -32,37 +40,30 @@ export default function Home() {
     }
   };
   
-  const handleDownload = async (port: number) => {
+    const handleDownload = async (fileId: string) => {
     setIsDownloading(true);
     
     try {
       // Request download from Java backend
-      const response = await apiClient.get(`/download/${port}`, {
+      const response = await apiClient.get(`/download/${fileId}`, {
         responseType: 'blob',
       });
+
+      // Log headers to debug file type issue
+      console.log('Download response headers:', response.headers);
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       
       // Try to get filename from response headers
-      // Axios normalizes headers to lowercase, but we need to handle different cases
       const headers = response.headers;
-      let contentDisposition = '';
-      
-      // Look for content-disposition header regardless of case
-      for (const key in headers) {
-        if (key.toLowerCase() === 'content-disposition') {
-          contentDisposition = headers[key];
-          break;
-        }
-      }
-      
-      let filename = 'downloaded-file';
+      let contentDisposition = headers['content-disposition'] || '';
+      let filename = 'downloaded-file'; // Default filename
       
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch && filenameMatch.length === 2) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch && filenameMatch.length > 1) {
           filename = filenameMatch[1];
         }
       }
@@ -71,6 +72,7 @@ export default function Home() {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url); // Clean up the object URL
     } catch (error) {
       console.error('Error downloading file:', error);
       alert('Failed to download file. Please check the invite code and try again.');
@@ -112,13 +114,26 @@ export default function Home() {
         
         {activeTab === 'upload' ? (
           <div>
-            <FileUpload onFileUpload={handleFileUpload} isUploading={isUploading} />
+            {/* <FileUpload onFileUpload={handleFileUpload} isUploading={isUploading} />
+             */}
+
+<FileUpload
+  onFileUpload={handleFileSelection}
+isUploading={isUploading}
+accept={{ 'image/*': ['.png', '.jpg', '.jpeg'], 'application/pdf': ['.pdf'], 'application/zip': ['.zip'] }}
+maxSizeMB={100}
+/>
+
             
-            {uploadedFile && !isUploading && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                <p className="text-sm text-gray-600">
-                  Selected file: <span className="font-medium">{uploadedFile.name}</span> ({Math.round(uploadedFile.size / 1024)} KB)
-                </p>
+            {uploadedFiles.length > 0 && !isUploading && (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={handleUpload}
+                  className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={isUploading}
+                >
+                  Upload {uploadedFiles.length} {uploadedFiles.length === 1 ? 'File' : 'Files'}
+                </button>
               </div>
             )}
             
@@ -129,7 +144,13 @@ export default function Home() {
               </div>
             )}
             
-            <InviteCode port={port} />
+            {fileId && <InviteCode fileId={fileId} />}
+
+            {fileId && !isUploading && (
+              <div className="mt-6 text-center text-green-600">
+                <p>File uploaded successfully! Share the code above.</p>
+              </div>
+            )}
           </div>
         ) : (
           <div>
