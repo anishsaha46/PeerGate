@@ -17,12 +17,12 @@ public class Main {
             System.out.println("Server is running on port " + port);
             System.out.println("Press Ctrl+C to stop the server");
             
-            // Keep the main thread alive
-            Thread.currentThread().join();
+            // The server runs on non-daemon threads, so the main thread can exit
+            // while the server continues to run.
             
-        } catch (Exception e) {
-            System.err.println("Error starting the server: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Throwable t) {
+            System.err.println("Critical error starting the server: " + t.getMessage());
+            t.printStackTrace();
             System.exit(1);
         }
     }
