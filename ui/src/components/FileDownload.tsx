@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FiDownload } from 'react-icons/fi';
 
 interface FileDownloadProps {
-  onDownload: (port: number) => Promise<void>;
+  onDownload: (fileId: string) => Promise<void>;
   isDownloading: boolean;
 }
 
@@ -20,16 +20,15 @@ export default function FileDownload({ onDownload, isDownloading }: FileDownload
     setError(''); // Clear any previous error messages
 
     // Parse the input value to an integer
-    const port = parseInt(inviteCode.trim(), 10);
-    // Validate the port number
-    if (isNaN(port) || port <= 0 || port > 65535) {
-      setError('Please enter a valid port number (1-65535)');
-      return; // Stop further execution if the port is invalid
+    const fileId = inviteCode.trim();
+    if (!fileId) {
+      setError('Please enter a valid invite code.');
+      return;
     }
 
     try {
       // Attempt to download the file using the provided onDownload function
-      await onDownload(port);
+      await onDownload(fileId);
     } catch (err) {
       // Handle any errors that occur during the download process
       setError('Failed to download the file. Please check the invite code and try again.');
