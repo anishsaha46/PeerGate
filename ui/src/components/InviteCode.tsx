@@ -4,19 +4,20 @@ import { useState } from 'react';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 
 interface InviteCodeProps {
-  port: number | null;
+  fileId: string | null;
 }
 
-export default function InviteCode({ port }: InviteCodeProps) {
+export default function InviteCode({ fileId }: InviteCodeProps) {
   // State to track whether the invite code has been copied to the clipboard
   const [copied, setCopied] = useState(false);
   
+  // If no fileId is provided, render nothing
   // If no port is provided, render nothing
-  if (!port) return null;
+  if (!fileId) return null;
   
   // Function to copy the invite code to the clipboard
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(port.toString()); // Copy the port number as a string
+    navigator.clipboard.writeText(fileId); // Copy the port number as a string
     setCopied(true); // Set the copied state to true
     setTimeout(() => setCopied(false), 2000); // Reset the copied state after 2 seconds
   };
@@ -30,7 +31,7 @@ export default function InviteCode({ port }: InviteCodeProps) {
       
       <div className="flex items-center">
         <div className="flex-1 bg-white p-3 rounded-l-md border border-r-0 border-gray-300 font-mono text-lg">
-          {port}
+          {fileId}
         </div>
         <button
           onClick={copyToClipboard}
