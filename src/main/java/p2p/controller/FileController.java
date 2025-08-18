@@ -1,6 +1,7 @@
 package p2p.controller;
 
 import p2p.service.FileSharer;
+import p2p.config.CorsFilter;
 
 import java.io.*;
 import java.util.UUID;
@@ -13,7 +14,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
+
 
 import org.apache.commons.io.IOUtils;
 
@@ -45,6 +46,7 @@ public class FileController {
     private class HealthHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            CorsFilter.addCorsHeaders(exchange);
             Headers headers = exchange.getResponseHeaders();
             headers.add("Content-Type", "text/plain");
             exchange.sendResponseHeaders(200, 2);
