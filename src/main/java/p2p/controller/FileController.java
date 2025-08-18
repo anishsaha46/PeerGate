@@ -36,9 +36,22 @@ public class FileController {
         
         server.createContext("/upload", new UploadHandler());
         server.createContext("/download", new DownloadHandler());
+        server.createContext("/health", new HealthHandler());
         server.createContext("/", new CORSHandler());
         
         server.setExecutor(executorService);
+    }
+    
+    private class HealthHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(200, 2);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write("OK".getBytes());
+            }
+        }
     }
     
     public void start() {
