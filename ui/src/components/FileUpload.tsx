@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useDropzone, FileRejection, Accept } from 'react-dropzone';
-import { FiUpload, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiUpload, FiAlertCircle } from 'react-icons/fi';
 
 interface FileUploadProps {
   onFileUpload: (files: File[]) => void;
