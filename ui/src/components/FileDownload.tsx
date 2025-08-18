@@ -29,7 +29,7 @@ export default function FileDownload({ onDownload, isDownloading }: FileDownload
     try {
       // Attempt to download the file using the provided onDownload function
       await onDownload(fileId);
-    } catch (err) {
+    } catch (_err) {
       // Handle any errors that occur during the download process
       setError('Failed to download the file. Please check the invite code and try again.');
     }
