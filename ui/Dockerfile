@@ -1,12 +1,10 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -15,20 +13,25 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Copy built assets from build stage
-COPY --from=build /app/.next ./.next
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/public ./public
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+USER nextjs
 
-# Install serve to run the application
-RUN npm install -g serve
+# Copy only necessary files
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Expose the port the app runs on
 EXPOSE 3000
 
+# Set environment variables
+ENV PORT 3000
+ENV NODE_ENV production
+
 # Command to run the application
-CMD ["serve", "-s", ".next", "-p", "3000"]
+CMD ["node", "server.js"]
