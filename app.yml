@@ -1,0 +1,24 @@
+// filepath: d:\cv_projects\PeerGate\app.yaml
+name: peergate
+services:
+- name: backend
+  dockerfile_path: Dockerfile.backend
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+  health_check:
+    http_path: /
+  envs:
+  - key: PORT
+    value: "8080"
+
+- name: frontend
+  dockerfile_path: ui/Dockerfile
+  source_dir: ui
+  github:
+    branch: main
+    deploy_on_push: true
+  envs:
+  - key: NEXT_PUBLIC_API_URL
+    value: ${backend.PRIVATE_URL}
