@@ -58,7 +58,7 @@ export default function Home() {
       
       // Try to get filename from response headers
       const headers = response.headers;
-      let contentDisposition = headers['content-disposition'] || '';
+      const contentDisposition = headers['content-disposition'] || '';
       let filename = 'downloaded-file'; // Default filename
       
       if (contentDisposition) {
