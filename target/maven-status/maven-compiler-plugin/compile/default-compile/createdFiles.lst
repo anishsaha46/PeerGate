@@ -1,8 +1,11 @@
 p2p\controller\FileController.class
 p2p\service\FileSharer.class
 p2p\controller\FileController$DownloadHandler.class
+p2p\config\CorsFilter.class
+p2p\controller\FileController$HealthHandler.class
 p2p\controller\FileController$UploadHandler.class
 p2p\controller\FileController$MultipartParser.class
+p2p\config\WebConfig.class
 p2p\controller\FileController$CORSHandler.class
 p2p\Main.class
 p2p\utils\UploadUtils.class
