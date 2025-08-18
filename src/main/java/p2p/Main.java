@@ -5,11 +5,8 @@ import p2p.controller.FileController;
 public class Main {
     public static void main(String[] args) {
         try {
-            // Default port is 8080, but you can change it here
-            int port = 8080;
-            if (args.length > 0) {
-                port = Integer.parseInt(args[0]);
-            }
+            // Get port from environment variable or use 8080 as default
+            int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
             
             FileController server = new FileController(port);
             server.start();
