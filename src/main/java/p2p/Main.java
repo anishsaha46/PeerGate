@@ -6,13 +6,17 @@ public class Main {
     public static void main(String[] args) {
         try {
             // Get port from environment variable or use 8080 as default
-            int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+            String portEnv = System.getenv().getOrDefault("PORT", "8080");
+            System.out.println("PORT environment variable: " + portEnv);
+            int port = Integer.parseInt(portEnv);
             
+            System.out.println("Starting server on port: " + port);
             FileController server = new FileController(port);
             server.start();
             
-            System.out.println("Server is running on port " + port);
-            System.out.println("Press Ctrl+C to stop the server");
+            System.out.println("Server successfully started on port " + port);
+            System.out.println("Upload directory: " + System.getProperty("java.io.tmpdir"));
+            System.out.println("Working directory: " + System.getProperty("user.dir"));
             
             // The server runs on non-daemon threads, so the main thread can exit
             // while the server continues to run.

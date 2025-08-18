@@ -26,7 +26,7 @@ public class FileController {
 
     public FileController(int port) throws IOException {
         this.fileSharer = new FileSharer();
-        this.server = HttpServer.create(new InetSocketAddress(port), 0);
+        this.server = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
         this.uploadDir = System.getProperty("java.io.tmpdir") + File.separator + "peerlink-uploads";
         this.executorService = Executors.newFixedThreadPool(10);
         
@@ -46,6 +46,7 @@ public class FileController {
     private class HealthHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Health check request received from: " + exchange.getRemoteAddress());
             CorsFilter.addCorsHeaders(exchange);
             Headers headers = exchange.getResponseHeaders();
             headers.add("Content-Type", "text/plain");
