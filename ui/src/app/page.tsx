@@ -167,7 +167,7 @@ maxSizeMB={100}
       </div>
       
       <footer className="mt-12 text-center text-gray-500 text-sm">
-        <p>PeerLink &copy; {new Date().getFullYear()} - Secure P2P File Sharing</p>
+        <p>PeerGate &copy; {new Date().getFullYear()} - Secure P2P File Sharing</p>
       </footer>
     </div>
   );
